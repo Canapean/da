@@ -12,4 +12,3 @@ def interact_strings(t):
         else:
             pass
     return result
-print(interact_strings(t))

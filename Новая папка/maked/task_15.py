@@ -3,4 +3,3 @@ def validate_pin(a):
         return True
     else:
         return False
-print(validate_pin('1434'))

@@ -5,4 +5,3 @@ def count_bits(a:int):
         if i == '1':
             c += 1
     return c
-print(count_bits(1234))
