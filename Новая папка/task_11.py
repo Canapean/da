@@ -1,61 +1,114 @@
-class BankAccount:
-    total_accounts = 0
+class Book:
+    def __init__(self, title: str, author: str, year: int, genre: str):
+        self.__title = title
+        self.__author = author
+        self.__year = year
+        self.__genre = genre
+        self.__status = True  # True означает "в наличии"
 
-    def __init__(self, account_type):
-        self.__balance = 0
-        self._account_number = f"ACC{BankAccount.total_accounts + 1}"
-        self.account_type = account_type
-        BankAccount.total_accounts += 1
+        self.__validate_data()
 
-    def deposit(self, amount):
-        if amount > 0:
-            self.__update_balance(amount)
+    def __validate_data(self):
+        if not self.__title:
+            raise ValueError("Название книги не может быть пустым.")
+        if self.__year > 2023:  # Допустим, текущий год - 2023
+            raise ValueError("Год издания не может быть в будущем.")
 
-    def withdraw(self, amount):
-        if self.__can_withdraw(amount):
-            self.__update_balance(-amount)
+    @property
+    def title(self):
+        return self.__title
 
-    def get_balance(self):
-        return self.__balance
+    @property
+    def author(self):
+        return self.__author
 
-    def __update_balance(self, amount):
-        self.__balance += amount
+    @property
+    def year(self):
+        return self.__year
 
-    def __can_withdraw(self, amount):
-        return amount <= self.__balance
+    @property
+    def genre(self):
+        return self.__genre
 
-    def __str__(self):
-        return f"Счет {self._account_number} ({self.account_type}) — Баланс: {self.__balance} единиц."
+    @property
+    def status(self):
+        return self.__status
+
+    def issue(self):
+        if self.__status:
+            self.__status = False
+            return True
+        return False
+
+    def return_book(self):
+        self.__status = True
 
 
-class Bank:
+class EBook(Book):
+    def __init__(self, title: str, author: str, year: int, genre: str, file_format: str):
+        super().__init__(title, author, year, genre)
+        self.__file_format = file_format
+
+    @property
+    def file_format(self):
+        return self.__file_format
+
+
+class Library:
     def __init__(self):
-        self.accounts = []
+        self.__books = []
 
-    def create_account(self, account_type):
-        account = BankAccount(account_type)
-        self.accounts.append(account)
-        return account
+    def add_book(self, book: Book):
+        self.__books.append(book)
 
-    def get_total_accounts(self):
-        return BankAccount.total_accounts
+    def find_book(self, title: str) -> Book:
+        for book in self.__books:
+            if book.title == title:
+                return book
+        return None
 
-bank = Bank()
+    def remove_book(self, title: str):
+        book = self.find_book(title)
+        if book:
+            self.__books.remove(book)
 
-# Создание счетов
-account1 = bank.create_account("Текущий")
-account2 = bank.create_account("Сберегательный")
+    def issue_book(self, title: str) -> bool:
+        book = self.find_book(title)
+        if book and book.issue():
+            return True
+        return False
 
-# Пополнение счетов
-account1.deposit(1000)
-account2.deposit(500)
+    def return_book(self, title: str):
+        book = self.find_book(title)
+        if book:
+            book.return_book()
 
-# Снятие средств
-account1.withdraw(200)
 
-# Получение информации о счетах
-print(account1)  # Счет ACC1 (Текущий) — Баланс: 800 единиц.
-print(account2)  # Счет ACC2 (Сберегательный) — Баланс: 500 единиц.
+# Автотесты
+if __name__ == "__main__":
+    # Создаем библиотеку
+    library = Library()
 
-# Общее количество счетов
-print("Всего счетов:", bank.get_total_accounts())  # Всего счетов: 2
+    # Добавляем книги
+    book1 = Book("1984", "Джордж Оруэлл", 1949, "Антиутопия")
+    library.add_book(book1)
+
+    ebook1 = EBook("Преступление и наказание", "Федор Достоевский", 1866, "Роман", "PDF")
+    library.add_book(ebook1)
+
+    # Поиск книги
+    found_book = library.find_book("1984")
+    assert found_book is not None, "Книга не найдена."
+
+    # Выдача книги
+    assert library.issue_book("1984"), "Книга должна быть выдана."
+    assert not library.issue_book("1984"), "Книга уже на руках."
+
+    # Возврат книги
+    library.return_book("1984")
+    assert library.issue_book("1984"), "Книга должна быть выдана снова."
+
+    # Удаление книги
+    library.remove_book("1984")
+    assert library.find_book("1984") is None, "Книга должна быть удалена."
+    print("Все тесты пройдены успешно.")
